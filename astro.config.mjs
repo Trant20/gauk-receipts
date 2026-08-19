@@ -12,7 +12,7 @@ const adapter = process.env.CF_PAGES
 export default defineConfig({
   output: 'server',
   adapter,
-  site: 'https://gaukinsurance.com',
+  site: 'https://gaukreceipts.com',
   integrations: [sitemap()],
   vite: {
     plugins: [tailwindcss()],
