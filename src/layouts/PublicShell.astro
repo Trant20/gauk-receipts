@@ -1,0 +1,66 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'GAUK Insurance',
+  description = "Photograph your possessions, get instant valuations, and discover your coverage gap before it's too late.",
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="generator" content={Astro.generator} />
+
+  <title>{title}</title>
+  <meta name="description" content={description} />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#1b1b1b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="GAUK Insurance" />
+</head>
+<body style="min-height: 100svh; display: flex; flex-direction: column;">
+
+  <header style="padding: clamp(20px,4vh,32px) clamp(20px,6vw,56px);">
+    <a href="/" style="display: inline-block;">
+      <img
+        src="/logo.png"
+        alt="GAUK Insurance"
+        style="width: clamp(140px,18vw,180px); height: auto; display: block;"
+      />
+    </a>
+  </header>
+
+  <main style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: clamp(20px,4vh,48px) clamp(20px,6vw,56px) clamp(40px,8vh,80px);">
+    <slot />
+  </main>
+
+  <footer style="padding: clamp(16px,3vh,24px) clamp(20px,6vw,56px); border-top: 1px solid var(--color-border); text-align: center;">
+    <p style="font-family: var(--font-sans); font-size: 12px; color: var(--color-text-muted); letter-spacing: 0.04em;">
+      &copy; 2026 GaukInsurance &nbsp;&middot;&nbsp;
+      <a href="/privacy" style="color: var(--color-text-muted);">Privacy Policy</a>
+      &nbsp;&middot;&nbsp;
+      <a href="/terms" style="color: var(--color-text-muted);">Terms of Service</a>
+    </p>
+  </footer>
+
+</body>
+</html>

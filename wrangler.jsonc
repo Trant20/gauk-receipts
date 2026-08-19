@@ -1,0 +1,25 @@
+{
+  "compatibility_date": "2026-04-15",
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  "name": "gauk-insurance",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SESSION",
+      "id": "e201aad73fc04bb995e357c55963d8cb"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "bucket_name": "gauk-antiques-images",
+      "binding": "gauk_insurance_images"
+    }
+  ]
+}

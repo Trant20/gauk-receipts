@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/Hero.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout>
+  <Hero />
+  <HowItWorks />
+  <Footer />
+</Layout>
+
+<script is:inline>
+  // Only check session once — if returned from gaukauth (has ?checked=1), show page
+  if (!window.location.search.includes('checked=1')) {
+    var fallback = window.location.origin + window.location.pathname + '?checked=1'
+    window.location.href = 'https://gaukauth.com/api/check?next=' + 
+      encodeURIComponent('https://gaukantiques.com/receipts') + 
+      '&fallback=' + encodeURIComponent(fallback)
+  }
+</script>

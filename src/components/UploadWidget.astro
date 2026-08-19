@@ -1,0 +1,363 @@
+<div id="upload-widget">
+
+  <!-- Upload Zone -->
+  <div id="upload-zone" style="width: 100%; max-width: 630px; margin: 0 auto; background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius); padding: clamp(36px,6.5vh,72px) 32px; display: flex; flex-direction: column; align-items: center; gap: 20px; cursor: pointer; animation: uploadPulse 3.8s ease-in-out infinite; backdrop-filter: blur(8px); position: relative; overflow: hidden; transition: padding 0.4s ease;">
+
+    <!-- Scan overlay -->
+    <div id="scan-overlay" style="display: none; position: absolute; inset: 0; z-index: 10; pointer-events: none; overflow: hidden;">
+      <div id="scan-line" style="position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(to right, transparent, var(--color-sage-light), transparent); box-shadow: 0 0 12px 2px rgba(124,144,130,0.6); animation: scanLine 1.8s ease-in-out infinite;"></div>
+      <div id="scan-corners" style="position: absolute; inset: 0;">
+        <span style="position: absolute; top: 12px; left: 12px; width: 24px; height: 24px; border-top: 1px solid var(--color-sage); border-left: 1px solid var(--color-sage);"></span>
+        <span style="position: absolute; bottom: 12px; right: 12px; width: 24px; height: 24px; border-bottom: 1px solid var(--color-sage); border-right: 1px solid var(--color-sage);"></span>
+      </div>
+    </div>
+
+    <!-- Preview image -->
+    <img id="upload-preview" src="" alt="" style="display: none; width: 100%; max-height: 320px; object-fit: contain; border-radius: 4px;" />
+
+    <!-- Placeholder -->
+    <div id="upload-placeholder" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+      <svg width="48" height="44" viewBox="0 0 48 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18.5 4L15 11H6C4.35 11 3 12.35 3 14V38C3 39.65 4.35 41 6 41H42C43.65 41 45 39.65 45 38V14C45 12.35 43.65 11 42 11H33L29.5 4H18.5Z" stroke="rgba(165,190,184,0.6)" stroke-width="1.6" stroke-linejoin="round" fill="none"></path>
+        <circle cx="24" cy="26" r="9.5" stroke="rgba(165,190,184,0.6)" stroke-width="1.6" fill="none"></circle>
+        <circle cx="38" cy="17" r="2" fill="rgba(165,190,184,0.5)"></circle>
+      </svg>
+      <p style="font-family: var(--font-sans); font-size: clamp(13px,1.3vw,16px); color: rgba(168,192,186,0.75); letter-spacing: 0.02em;">Photograph an item to begin your audit</p>
+    </div>
+
+    <!-- Status text -->
+    <p id="upload-status" style="display: none; font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-sage); text-align: center;"></p>
+
+    <!-- Hidden file input -->
+    <input id="file-input" type="file" accept="image/*" style="display: none;" />
+  </div>
+
+  <!-- Result panel -->
+  <div id="result-panel" style="display: none; width: 100%; max-width: 630px; margin: 24px auto 0;">
+
+    <!-- Item result card -->
+    <div id="result-card" style="background: var(--color-card); border: 1px solid var(--color-border-card); border-radius: var(--radius); padding: clamp(24px,4vh,40px) clamp(20px,4vw,36px); display: flex; flex-direction: column; gap: 20px;">
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span id="result-category" style="font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-sage);"></span>
+        <h3 id="result-title" style="font-family: var(--font-serif); font-weight: 400; font-size: clamp(20px,2.5vw,28px); color: var(--color-text); line-height: 1.2;"></h3>
+        <p id="result-description" style="font-family: var(--font-sans); font-size: 14px; color: var(--color-text-dim); line-height: 1.75; text-align: left;"></p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-text-muted);">Est. Replacement Cost</span>
+          <span id="result-value" style="font-family: var(--font-serif); font-size: clamp(22px,3vw,32px); color: var(--color-text);"></span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-text-muted);">Confidence</span>
+          <span id="result-confidence" style="font-family: var(--font-serif); font-size: clamp(22px,3vw,32px); color: var(--color-sage);"></span>
+        </div>
+      </div>
+
+      <!-- Commentary -->
+      <div id="result-commentary" style="display: none; border-top: 1px solid var(--color-border); padding-top: 20px; flex-direction: column; gap: 10px;">
+        <p id="result-commentary-text" style="font-family: var(--font-sans); font-size: 14px; color: var(--color-text-dim); line-height: 1.8; text-align: left;"></p>
+        <p id="result-commentary-hook" style="font-family: var(--font-sans); font-size: 14px; color: var(--color-sage); line-height: 1.6; font-style: italic; text-align: left;"></p>
+      </div>
+
+      <!-- AI estimate note -->
+      <p style="font-family: var(--font-sans); font-size: 12px; color: var(--color-text-faint); line-height: 1.7; text-align: center;">This is our AI estimate based on current retail pricing. You can edit this value or request a detailed report.</p>
+
+      <!-- Location confirmation -->
+      <div id="location-bar" style="display: none; background: rgba(124,144,130,0.08); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 12px 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+          <p id="location-text" style="font-family: var(--font-sans); font-size: 13px; color: var(--color-text-dim); margin: 0;"></p>
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <button id="location-confirm" style="font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-sage); background: none; border: none; cursor: pointer; padding: 0;">Confirm</button>
+            <button id="location-change" style="font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted); background: none; border: none; cursor: pointer; padding: 0;">Change</button>
+          </div>
+        </div>
+        <div id="country-selector" style="display: none;">
+          <select id="country-select" style="width: 100%; background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 10px 14px; font-family: var(--font-sans); font-size: 14px; color: var(--color-text); outline: none;">
+            <option value="">Select your country</option>
+            <option value="NZ">New Zealand</option>
+            <option value="AU">Australia</option>
+            <option value="GB">United Kingdom</option>
+            <option value="US">United States</option>
+            <option value="CA">Canada</option>
+            <option value="IE">Ireland</option>
+            <option value="ZA">South Africa</option>
+            <option value="SG">Singapore</option>
+            <option value="EU">Europe (other)</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Post-scan gate -->
+    <div id="scan-gate" style="margin-top: 16px; background: var(--color-card); border: 1px solid var(--color-border-card); border-radius: var(--radius); padding: clamp(24px,4vh,40px) clamp(20px,4vw,36px); display: none; flex-direction: column; gap: 20px; text-align: center;">
+      <h3 id="gate-heading" style="font-family: var(--font-serif); font-weight: 400; font-size: clamp(22px,3vw,30px); color: var(--color-text); line-height: 1.2;"></h3>
+      <p id="gate-body" style="font-family: var(--font-sans); font-size: 14px; color: var(--color-text-dim); line-height: 1.8; max-width: 420px; margin: 0 auto;"></p>
+      <button id="auth-cta-btn" style="display: inline-block; background: var(--color-sage); color: white; font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 32px; border-radius: var(--radius); border: none; cursor: pointer; transition: opacity 0.2s;">Create your free account</button>
+      <p style="font-family: var(--font-sans); font-size: 12px; color: var(--color-text-faint);">Takes 30 seconds. No card required.</p>
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+  @keyframes scanLine {
+    0% { top: 0%; }
+    100% { top: 100%; }
+  }
+</style>
+
+<script is:inline>
+(function () {
+  var zone       = document.getElementById('upload-zone');
+  var fileInput  = document.getElementById('file-input');
+  var placeholder = document.getElementById('upload-placeholder');
+  var preview    = document.getElementById('upload-preview');
+  var statusEl   = document.getElementById('upload-status');
+  var scanOverlay = document.getElementById('scan-overlay');
+  var resultPanel = document.getElementById('result-panel');
+  var locationBar = document.getElementById('location-bar');
+  var locationText = document.getElementById('location-text');
+  var locationConfirm = document.getElementById('location-confirm');
+  var locationChange = document.getElementById('location-change');
+
+  var detectedCountry = '';
+  var detectedCurrency = '';
+
+  function setStatus(msg) {
+    if (msg) {
+      statusEl.textContent = msg;
+      statusEl.style.display = 'block';
+    } else {
+      statusEl.style.display = 'none';
+    }
+  }
+
+  function setScanActive(active) {
+    scanOverlay.style.display = active ? 'block' : 'none';
+  }
+
+  function collapseHero() {
+    var heroContent = document.getElementById('hero-content');
+    if (heroContent) {
+      heroContent.style.transition = 'opacity 0.5s ease, transform 0.5s ease, max-height 0.5s ease';
+      heroContent.style.opacity = '0';
+      heroContent.style.transform = 'translateY(-30px)';
+      heroContent.style.maxHeight = '0';
+      heroContent.style.overflow = 'hidden';
+    }
+  }
+
+  function showResult(data) {
+    document.getElementById('result-category').textContent = data.category || '';
+    document.getElementById('result-title').textContent = data.title || 'Item identified';
+    document.getElementById('result-value').textContent = data.value_display || '';
+    document.getElementById('result-confidence').textContent = data.confidence || '';
+
+    // Typewriter for description
+    var descEl = document.getElementById('result-description');
+    descEl.textContent = '';
+    descEl.style.textAlign = 'left';
+    var desc = data.description || '';
+    var di = 0;
+    function typeDesc() {
+      di++;
+      descEl.textContent = desc.slice(0, di);
+      if (di < desc.length) setTimeout(typeDesc, 18 + Math.random() * 12);
+    }
+    setTimeout(typeDesc, 300);
+
+    var commentaryEl = document.getElementById('result-commentary');
+    var commentaryText = document.getElementById('result-commentary-text');
+    var commentaryHook = document.getElementById('result-commentary-hook');
+    if (data.commentary && commentaryEl) {
+      commentaryText.textContent = data.commentary;
+      commentaryHook.textContent = data.commentary_hook || '';
+      commentaryEl.style.display = 'flex';
+    }
+
+    if (data.country && data.currency) {
+      detectedCountry = data.country;
+      detectedCurrency = data.currency;
+      locationText.textContent = 'You appear to be in ' + data.country_name + '. Valuations shown in ' + data.currency + '.';
+      locationBar.style.display = 'flex';
+    }
+
+    resultPanel.style.display = 'block';
+    document.getElementById('scan-gate').style.display = 'flex';
+  }
+
+  zone.addEventListener('click', function () {
+    fileInput.click();
+  });
+
+  zone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    zone.style.borderColor = 'var(--color-sage)';
+  });
+
+  zone.addEventListener('dragleave', function () {
+    zone.style.borderColor = '';
+  });
+
+  zone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    zone.style.borderColor = '';
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  fileInput.addEventListener('change', function () {
+    var file = fileInput.files && fileInput.files[0];
+    if (file) handleFile(file);
+  });
+
+  locationConfirm.addEventListener('click', function () {
+    locationBar.style.display = 'none';
+  });
+
+  var countrySelector = document.getElementById('country-selector');
+  var countrySelect   = document.getElementById('country-select');
+
+  function typewriterGate() {
+    var heading = document.getElementById('gate-heading');
+    var body    = document.getElementById('gate-body');
+    var h = 'Enjoying the inventory tool?';
+    var b = 'Create a free account to save this item, continue scanning, and discover everything GAUK can do for you.';
+    var i = 0, j = 0;
+    heading.textContent = '';
+    body.textContent    = '';
+    function typeH() {
+      i++;
+      heading.textContent = h.slice(0, i);
+      if (i < h.length) { setTimeout(typeH, 45 + Math.random() * 25); }
+      else { setTimeout(typeB, 300); }
+    }
+    function typeB() {
+      j++;
+      body.textContent = b.slice(0, j);
+      if (j < b.length) { setTimeout(typeB, 22 + Math.random() * 15); }
+    }
+    typeH();
+  }
+
+  locationChange.addEventListener('click', function () {
+    countrySelector.style.display = 'block';
+    locationChange.style.display  = 'none';
+  });
+
+  countrySelect.addEventListener('change', function () {
+    var country = countrySelect.value;
+    if (!country) return;
+    fetch('/api/user/location', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country: country })
+    });
+    locationBar.style.display = 'none';
+  });
+
+  async function handleFile(file) {
+    collapseHero();
+    placeholder.style.display = 'none';
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+    zone.style.animation = 'none';
+    setScanActive(true);
+    setStatus('Stripping metadata...');
+
+    try {
+      var stripped = await stripExifInline(file);
+      setStatus('Uploading...');
+
+      var formData = new FormData();
+      formData.append('file', stripped);
+
+      var uploadRes = await fetch('/api/scan/upload', { method: 'POST', body: formData });
+      var uploadData = await uploadRes.json();
+      if (uploadData.error) throw new Error(uploadData.error);
+
+      setStatus('Identifying...');
+
+      var identifyRes = await fetch('/api/scan/identify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: uploadData.key, mode: 'guest' })
+      });
+      var identifyData = await identifyRes.json();
+
+      if (identifyData.guest_limit || identifyData.credits_exhausted) {
+        setScanActive(false);
+        setStatus('');
+        placeholder.style.display = 'none';
+        resultPanel.style.display = 'block';
+        var resultCard = document.getElementById('result-card');
+        if (resultCard) resultCard.style.display = 'none';
+        var gate = document.getElementById('scan-gate');
+        gate.style.display = 'flex';
+        typewriterGate();
+        return;
+      }
+
+      if (identifyData.error) throw new Error(identifyData.error);
+
+      setScanActive(false);
+      setStatus('');
+
+      // Store pending scan ID for claim after auth
+      if (identifyData.id) {
+        try { localStorage.setItem('gi_pending_scan', identifyData.id); } catch(e) {}
+      }
+
+      showResult(identifyData);
+
+    } catch (err) {
+      setScanActive(false);
+      setStatus('Something went wrong. Please try again.');
+      console.error(err);
+    }
+  }
+
+  function stripExifInline(file) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function () {
+        try {
+          var canvas = document.createElement('canvas');
+          canvas.width  = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          var ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('Canvas unavailable');
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob(function (blob) {
+            URL.revokeObjectURL(url);
+            if (!blob) { reject(new Error('toBlob failed')); return; }
+            resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+          }, 'image/jpeg', 0.92);
+        } catch (e) {
+          URL.revokeObjectURL(url);
+          reject(e);
+        }
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+      img.src = url;
+    });
+  }
+
+  // Auth CTA — build URL with pending scan ID so it survives cross-domain
+  var authCtaBtn = document.getElementById('auth-cta-btn');
+  if (authCtaBtn) {
+    authCtaBtn.addEventListener('click', function () {
+      var pendingScan = '';
+      try { pendingScan = localStorage.getItem('gi_pending_scan') || ''; } catch(e) {}
+      var url = 'https://gaukauth.com?from=gaukinsurance.com&next=/library';
+      if (pendingScan) url += '&pending_scan=' + encodeURIComponent(pendingScan);
+      window.location.href = url;
+    });
+  }
+})();
+</script>

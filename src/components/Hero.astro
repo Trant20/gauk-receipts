@@ -1,0 +1,73 @@
+---
+import ReceiptUploadWidget from './ReceiptUploadWidget.astro';
+---
+
+<main style="position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100svh; padding: clamp(72px,10vh,120px) clamp(20px,6vw,80px) clamp(40px,6vh,72px); text-align: center;">
+
+  <div id="hero-content" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+
+    <p id="hero-eyebrow" style="font-family: var(--font-sans); font-size: clamp(11px,1vw,13px); letter-spacing: 0.07em; color: var(--color-text-sub); margin-bottom: clamp(14px,2.2vh,26px); max-width: 680px; line-height: 1.5; opacity: 0; transition: opacity 1.3s ease;">
+      &ldquo;I ONLY REALISED I&rsquo;D LOST THE RECEIPT WHEN I WENT TO CLAIM&rdquo;
+    </p>
+
+    <h1 id="hero-line1" class="headline-fs" style="font-family: var(--font-serif); font-weight: 400; font-size: clamp(38px,6.8vw,100px); line-height: 1.02; color: var(--color-text); max-width: 1100px; width: 100%; letter-spacing: -0.01em; min-height: 1.02em;"></h1>
+
+    <h2 id="hero-line2" class="headline-fs" style="font-family: var(--font-serif); font-weight: 700; font-style: italic; font-size: clamp(38px,6.8vw,130px); line-height: 1.08; color: #9D92BCF2; max-width: 1100px; width: 100%; margin-bottom: clamp(22px,3.5vh,44px); letter-spacing: -0.01em; min-height: 1.08em;"></h2>
+
+    <p id="hero-sub" style="font-family: var(--font-sans); font-size: clamp(13px,1.35vw,17px); color: rgba(255,255,255,0.82); line-height: 1.75; max-width: 540px; margin-bottom: clamp(22px,3vh,38px); opacity: 0; transition: opacity 1s ease;">
+      Photograph any receipt and Claude extracts every item, price and date into a searchable encrypted vault. Proof of purchase, always ready.
+    </p>
+
+  </div>
+
+  <ReceiptUploadWidget />
+
+  <p id="hero-trust" class="trust-txt" style="font-family: var(--font-sans); font-size: clamp(9px,0.85vw,11px); letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-text-faint); margin-top: clamp(18px,2.8vh,30px); opacity: 0; transition: opacity 1s ease; line-height: 2.2;">
+    YOUR DATA IS ENCRYPTED &nbsp;|&nbsp; WE DO NOT STORE YOUR PERSONAL DETAILS
+  </p>
+
+</main>
+
+<script is:inline>
+(function () {
+  var L1 = 'Scan a receipt. We extract every item and lock it in your vault.';
+  var L2 = 'No more lost receipts.';
+
+  var eyebrow = document.getElementById('hero-eyebrow');
+  var line1   = document.getElementById('hero-line1');
+  var line2   = document.getElementById('hero-line2');
+  var sub     = document.getElementById('hero-sub');
+  var trust   = document.getElementById('hero-trust');
+
+  setTimeout(function () {
+    eyebrow.style.opacity = '1';
+  }, 300);
+
+  setTimeout(function () {
+    var i = 0;
+    function typeL1() {
+      i++;
+      line1.textContent = L1.slice(0, i);
+      if (i < L1.length) {
+        setTimeout(typeL1, 48 + Math.random() * 28);
+      } else {
+        setTimeout(function () {
+          var j = 0;
+          function typeL2() {
+            j++;
+            line2.textContent = L2.slice(0, j);
+            if (j < L2.length) {
+              setTimeout(typeL2, 70 + Math.random() * 45);
+            } else {
+              setTimeout(function () { sub.style.opacity = '1'; }, 350);
+              setTimeout(function () { trust.style.opacity = '1'; }, 700);
+            }
+          }
+          typeL2();
+        }, 480);
+      }
+    }
+    typeL1();
+  }, 1700);
+})();
+</script>

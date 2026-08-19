@@ -1,0 +1,30 @@
+<nav id="desktop-nav" style="position: fixed; top: 0; right: 0; padding: 28px 40px; z-index: 20; display: flex; gap: 32px; align-items: center; transition: opacity 0.3s ease;">
+  <a href="#how-it-works" style="font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; transition: color 0.2s;">How It Works</a>
+  <a href="https://gaukauth.com?from=gaukinsurance.com&next=/library" style="font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; transition: color 0.2s;">Log In</a>
+</nav>
+
+<style>
+  @media (max-width: 640px) {
+    #desktop-nav { display: none !important; }
+  }
+</style>
+
+<script is:inline>
+(function () {
+  var nav  = document.getElementById('desktop-nav');
+  var logo = document.getElementById('site-logo');
+  if (!nav) return;
+
+  window.addEventListener('scroll', function () {
+    var scrolled = window.scrollY > 20;
+    var opacity  = scrolled ? '0' : '1';
+    var pointer  = scrolled ? 'none' : 'auto';
+    nav.style.opacity        = opacity;
+    nav.style.pointerEvents  = pointer;
+    if (logo) {
+      logo.style.opacity       = opacity;
+      logo.style.pointerEvents = pointer;
+    }
+  }, { passive: true });
+})();
+</script>

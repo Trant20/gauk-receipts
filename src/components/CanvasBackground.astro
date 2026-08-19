@@ -1,0 +1,125 @@
+<canvas id="gi-canvas" style="position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; pointer-events: none;"></canvas>
+
+<script is:inline>
+(function () {
+  var canvas = document.getElementById('gi-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var nodes = [], edges = [], pulses = [];
+  var lastPulseTime = performance.now();
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    spawnNodes(canvas.width, canvas.height);
+  }
+
+  function spawnNodes(W, H) {
+    var count = Math.max(18, Math.min(30, Math.floor(W * H / 48000)));
+    nodes = [];
+    for (var i = 0; i < count; i++) {
+      nodes.push({
+        x:  Math.random() * W,
+        y:  Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.22,
+        vy: (Math.random() - 0.5) * 0.22
+      });
+    }
+    pulses = [];
+  }
+
+  function animate() {
+    var W = canvas.width, H = canvas.height;
+    var now = performance.now();
+    var maxDist = Math.sqrt(W * W + H * H) * 0.26;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0)      { n.x = 0;  n.vx *= -1; }
+      else if (n.x > W) { n.x = W;  n.vx *= -1; }
+      if (n.y < 0)      { n.y = 0;  n.vy *= -1; }
+      else if (n.y > H) { n.y = H;  n.vy *= -1; }
+    }
+
+    edges = [];
+    for (var i = 0; i < nodes.length; i++) {
+      for (var j = i + 1; j < nodes.length; j++) {
+        var a = nodes[i], b = nodes[j];
+        var dx = b.x - a.x, dy = b.y - a.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) edges.push({ a: a, b: b, dist: dist });
+      }
+    }
+
+    for (var i = 0; i < edges.length; i++) {
+      var e = edges[i];
+      var alpha = (1 - e.dist / maxDist) * 0.2;
+      ctx.beginPath();
+      ctx.moveTo(e.a.x, e.a.y);
+      ctx.lineTo(e.b.x, e.b.y);
+      ctx.strokeStyle = 'rgba(150,163,154,' + alpha.toFixed(3) + ')';
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
+    }
+
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      var g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, 12);
+      g.addColorStop(0, 'rgba(150,163,154,0.5)');
+      g.addColorStop(1, 'rgba(150,163,154,0)');
+      ctx.beginPath(); ctx.arc(n.x, n.y, 12, 0, Math.PI * 2);
+      ctx.fillStyle = g; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x, n.y, 1.8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(190,205,196,0.9)'; ctx.fill();
+    }
+
+    var interval = 2200 + Math.random() * 2600;
+    if (edges.length && now - lastPulseTime > interval) {
+      var e = edges[Math.floor(Math.random() * edges.length)];
+      pulses.push({ a: e.a, b: e.b, t: 0, spd: 0.0014 + Math.random() * 0.0012 });
+      lastPulseTime = now;
+    }
+
+    var alive = [];
+    for (var i = 0; i < pulses.length; i++) {
+      var p = pulses[i];
+      p.t += p.spd;
+      if (p.t > 1.05) continue;
+      alive.push(p);
+      if (p.t > 1) continue;
+      var x = p.a.x + (p.b.x - p.a.x) * p.t;
+      var y = p.a.y + (p.b.y - p.a.y) * p.t;
+
+      var halo = ctx.createRadialGradient(x, y, 0, x, y, 32);
+      halo.addColorStop(0,   'rgba(150,163,154,0.75)');
+      halo.addColorStop(0.4, 'rgba(150,163,154,0.25)');
+      halo.addColorStop(1,   'rgba(150,163,154,0)');
+      ctx.beginPath(); ctx.arc(x, y, 32, 0, Math.PI * 2);
+      ctx.fillStyle = halo; ctx.fill();
+
+      ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(218,228,222,0.98)'; ctx.fill();
+
+      if (p.t > 0.82) {
+        var fade = Math.sin(((p.t - 0.82) / 0.18) * Math.PI);
+        var r    = 52 * ((p.t - 0.82) / 0.18);
+        var burst = ctx.createRadialGradient(p.b.x, p.b.y, 0, p.b.x, p.b.y, r);
+        burst.addColorStop(0, 'rgba(190,205,196,' + (fade * 0.85).toFixed(3) + ')');
+        burst.addColorStop(1, 'rgba(150,163,154,0)');
+        ctx.beginPath(); ctx.arc(p.b.x, p.b.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = burst; ctx.fill();
+      }
+    }
+    pulses = alive;
+
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  animate();
+})();
+</script>

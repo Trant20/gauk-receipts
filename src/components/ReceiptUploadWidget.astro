@@ -1,0 +1,368 @@
+<div id="receipt-widget">
+
+  <!-- Upload Zone -->
+  <div id="rw-upload-zone" style="width: 100%; max-width: 630px; margin: 0 auto; background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius); padding: clamp(36px,6.5vh,72px) 32px; display: flex; flex-direction: column; align-items: center; gap: 20px; cursor: pointer; animation: uploadPulse 3.8s ease-in-out infinite; backdrop-filter: blur(8px); position: relative; overflow: hidden; transition: padding 0.4s ease;">
+
+    <!-- Scan overlay -->
+    <div id="rw-scan-overlay" style="display: none; position: absolute; inset: 0; z-index: 10; pointer-events: none; overflow: hidden;">
+      <div style="position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(to right, transparent, var(--color-sage-light), transparent); box-shadow: 0 0 12px 2px rgba(122,110,158,0.6); animation: scanLine 1.8s ease-in-out infinite;"></div>
+      <div style="position: absolute; inset: 0;">
+        <span style="position: absolute; top: 12px; left: 12px; width: 24px; height: 24px; border-top: 1px solid var(--color-sage); border-left: 1px solid var(--color-sage);"></span>
+        <span style="position: absolute; bottom: 12px; right: 12px; width: 24px; height: 24px; border-bottom: 1px solid var(--color-sage); border-right: 1px solid var(--color-sage);"></span>
+      </div>
+    </div>
+
+    <!-- Preview image -->
+    <img id="rw-preview" src="" alt="" style="display: none; width: 100%; max-height: 320px; object-fit: contain; border-radius: 4px;" />
+
+    <!-- Placeholder -->
+    <div id="rw-placeholder" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+      <svg width="48" height="56" viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: var(--color-sage);">
+        <rect x="4" y="2" width="40" height="52" rx="2" stroke="currentColor" stroke-width="1.6" fill="none" opacity="0.6"/>
+        <line x1="12" y1="14" x2="36" y2="14" stroke="currentColor" stroke-width="1.4" opacity="0.6"/>
+        <line x1="12" y1="22" x2="36" y2="22" stroke="currentColor" stroke-width="1.2" opacity="0.4"/>
+        <line x1="12" y1="29" x2="36" y2="29" stroke="currentColor" stroke-width="1.2" opacity="0.4"/>
+        <line x1="12" y1="36" x2="28" y2="36" stroke="currentColor" stroke-width="1.2" opacity="0.4"/>
+        <line x1="12" y1="43" x2="32" y2="43" stroke="currentColor" stroke-width="1.2" opacity="0.3"/>
+      </svg>
+      <p style="font-family: var(--font-sans); font-size: clamp(13px,1.3vw,16px); color: rgba(157,146,188,0.75); letter-spacing: 0.02em;">Photograph a receipt to begin</p>
+    </div>
+
+    <!-- Status text -->
+    <p id="rw-status" style="display: none; font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-sage); text-align: center;"></p>
+
+    <!-- Hidden file input -->
+    <input id="rw-file-input" type="file" accept="image/*" style="display: none;" />
+  </div>
+
+  <!-- Result panel -->
+  <div id="rw-result-panel" style="display: none; width: 100%; max-width: 630px; margin: 24px auto 0;">
+
+    <!-- Receipt result card -->
+    <div id="rw-result-card" style="background: var(--color-card); border: 1px solid var(--color-border-card); border-radius: var(--radius); padding: clamp(24px,4vh,40px) clamp(20px,4vw,36px); display: flex; flex-direction: column; gap: 0;">
+
+      <!-- Merchant block -->
+      <div style="padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <span id="rw-category" style="font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-sage); display: block; margin-bottom: 6px;"></span>
+        <h3 id="rw-merchant" style="font-family: var(--font-serif); font-weight: 400; font-size: clamp(22px,3vw,32px); color: var(--color-text); line-height: 1.2; margin-bottom: 4px;"></h3>
+        <div id="rw-merchant-meta" style="font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.5); display: flex; gap: 12px; flex-wrap: wrap;"></div>
+      </div>
+
+      <!-- Total + Confidence -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4);">Total Paid</span>
+          <span id="rw-total" style="font-family: var(--font-serif); font-size: clamp(22px,3vw,32px); color: var(--color-sage);"></span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4);">Extraction</span>
+          <span id="rw-confidence" style="font-family: var(--font-serif); font-size: clamp(22px,3vw,32px); color: var(--color-text);"></span>
+        </div>
+      </div>
+
+      <!-- Line items -->
+      <div id="rw-items-list" style="display: flex; flex-direction: column; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.1); gap: 0;"></div>
+
+      <!-- Totals summary -->
+      <div id="rw-totals" style="padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 6px;"></div>
+
+      <!-- Warranty -->
+      <div id="rw-warranty" style="display: none; padding: 14px 16px; margin: 12px 0; background: rgba(122,110,158,0.08); border: 1px solid rgba(122,110,158,0.2); border-radius: var(--radius);">
+        <span style="font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-sage); display: block; margin-bottom: 4px;">Warranty</span>
+        <span id="rw-warranty-text" style="font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.6);"></span>
+      </div>
+
+      <!-- Notes -->
+      <div id="rw-notes" style="display: none; padding-top: 12px;">
+        <p id="rw-notes-text" style="font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.7; font-style: italic;"></p>
+      </div>
+
+    </div>
+
+    <!-- Post-scan gate -->
+    <div id="rw-gate" style="margin-top: 16px; background: var(--color-card); border: 1px solid var(--color-border-card); border-radius: var(--radius); padding: clamp(24px,4vh,40px) clamp(20px,4vw,36px); display: none; flex-direction: column; gap: 20px; text-align: center;">
+      <h3 id="rw-gate-heading" style="font-family: var(--font-serif); font-weight: 400; font-size: clamp(22px,3vw,30px); color: var(--color-text); line-height: 1.2;"></h3>
+      <p id="rw-gate-body" style="font-family: var(--font-sans); font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.8; max-width: 420px; margin: 0 auto;"></p>
+      <button id="rw-auth-btn" style="display: inline-block; background: var(--color-sage); color: white; font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 32px; border-radius: var(--radius); border: none; cursor: pointer; transition: opacity 0.2s;">Save to your vault — free</button>
+      <p style="font-family: var(--font-sans); font-size: 12px; color: rgba(255,255,255,0.3);">Takes 30 seconds. No card required.</p>
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+  @keyframes scanLine {
+    0% { top: 0%; }
+    100% { top: 100%; }
+  }
+  .rw-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    gap: 12px;
+  }
+  .rw-item-row:last-child { border-bottom: none; }
+  .rw-item-desc { font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.65); flex: 1; }
+  .rw-item-meta { font-family: var(--font-sans); font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; display: flex; gap: 8px; }
+  .rw-sale-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #c97b2b; background: rgba(201,123,43,0.15); border: 1px solid rgba(201,123,43,0.3); padding: 1px 5px; }
+  .rw-item-price { text-align: right; flex-shrink: 0; }
+  .rw-item-amount { font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); }
+  .rw-item-orig { font-family: var(--font-sans); font-size: 11px; color: rgba(255,255,255,0.3); text-decoration: line-through; margin-top: 1px; }
+  .rw-total-row { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.5); }
+  .rw-savings-row { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 13px; color: #5a9e68; font-weight: 600; }
+  .rw-total-final { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 15px; font-weight: 700; color: var(--color-text); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 4px; }
+</style>
+
+<script is:inline>
+(function () {
+  var zone       = document.getElementById('rw-upload-zone');
+  var fileInput  = document.getElementById('rw-file-input');
+  var placeholder = document.getElementById('rw-placeholder');
+  var preview    = document.getElementById('rw-preview');
+  var statusEl   = document.getElementById('rw-status');
+  var scanOverlay = document.getElementById('rw-scan-overlay');
+  var resultPanel = document.getElementById('rw-result-panel');
+
+  function setStatus(msg) {
+    if (msg) { statusEl.textContent = msg; statusEl.style.display = 'block'; }
+    else { statusEl.style.display = 'none'; }
+  }
+
+  function setScanActive(active) {
+    scanOverlay.style.display = active ? 'block' : 'none';
+  }
+
+  function collapseHero() {
+    var heroContent = document.getElementById('hero-content');
+    if (heroContent) {
+      heroContent.style.transition = 'opacity 0.5s ease, transform 0.5s ease, max-height 0.5s ease';
+      heroContent.style.opacity = '0';
+      heroContent.style.transform = 'translateY(-30px)';
+      heroContent.style.maxHeight = '0';
+      heroContent.style.overflow = 'hidden';
+    }
+  }
+
+  function fmt(amount, currency) {
+    if (!amount) return '';
+    var sym = { NZD: 'NZ$', AUD: 'A$', GBP: '\u00a3', USD: '$', EUR: '\u20ac' };
+    return (sym[currency] || (currency + ' ')) + Number(amount).toFixed(2);
+  }
+
+  function fmtDate(d) {
+    if (!d) return '';
+    try { return new Date(d).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' }); }
+    catch (e) { return d; }
+  }
+
+  function showResult(data) {
+    // Merchant
+    document.getElementById('rw-category').textContent = data.category || '';
+    document.getElementById('rw-merchant').textContent = data.merchant || 'Receipt scanned';
+    document.getElementById('rw-total').textContent = data.total_display || '';
+    document.getElementById('rw-confidence').textContent = data.confidence || '';
+
+    // Merchant meta row
+    var metaEl = document.getElementById('rw-merchant-meta');
+    var metaParts = [];
+    if (data.merchant_branch) metaParts.push(data.merchant_branch);
+    if (data.merchant_gst) metaParts.push('GST ' + data.merchant_gst);
+    if (data.date) metaParts.push(fmtDate(data.date));
+    if (data.time) metaParts.push(data.time);
+    metaEl.innerHTML = metaParts.map(function(p) { return '<span>' + p + '</span>'; }).join('');
+
+    // Line items
+    var itemsList = document.getElementById('rw-items-list');
+    itemsList.innerHTML = '';
+    var items = data.items || [];
+    items.forEach(function(item) {
+      var row = document.createElement('div');
+      row.className = 'rw-item-row';
+
+      var price = item.line_total || item.unit_price || item.amount || 0;
+      var origPrice = item.original_price || null;
+      var onSale = item.is_on_sale || false;
+      var qty = item.quantity || 1;
+
+      var metaParts = [];
+      if (item.category) metaParts.push(item.category);
+      if (qty > 1) metaParts.push('Qty ' + qty);
+
+      var saleBadge = onSale ? '<span class="rw-sale-badge">SALE</span>' : '';
+      var origHtml = origPrice ? '<div class="rw-item-orig">' + fmt(origPrice, data.currency) + '</div>' : '';
+
+      row.innerHTML = '<div class="rw-item-desc">'
+        + '<div>' + (item.description || '') + '</div>'
+        + (metaParts.length || onSale ? '<div class="rw-item-meta">' + metaParts.join(' \u00b7 ') + ' ' + saleBadge + '</div>' : '')
+        + '</div>'
+        + '<div class="rw-item-price">'
+        + '<div class="rw-item-amount">' + fmt(price, data.currency) + '</div>'
+        + origHtml
+        + '</div>';
+      itemsList.appendChild(row);
+    });
+
+    // Totals
+    var totalsEl = document.getElementById('rw-totals');
+    totalsEl.innerHTML = '';
+    if (data.tax_amount) {
+      var taxRow = document.createElement('div');
+      taxRow.className = 'rw-total-row';
+      taxRow.innerHTML = '<span>' + (data.tax_label || 'Tax') + ' included</span><span>' + fmt(data.tax_amount, data.currency) + '</span>';
+      totalsEl.appendChild(taxRow);
+    }
+    if (data.savings_total) {
+      var savRow = document.createElement('div');
+      savRow.className = 'rw-savings-row';
+      savRow.innerHTML = '<span>You saved</span><span>' + fmt(data.savings_total, data.currency) + '</span>';
+      totalsEl.appendChild(savRow);
+    }
+    var finalRow = document.createElement('div');
+    finalRow.className = 'rw-total-final';
+    finalRow.innerHTML = '<span>Total paid</span><span>' + (data.total_display || '') + '</span>';
+    totalsEl.appendChild(finalRow);
+
+    // Warranty
+    if (data.warranty_expiry || data.warranty_years) {
+      var wText = data.warranty_years ? data.warranty_years + ' year warranty' : '';
+      if (data.warranty_expiry) wText += (wText ? ' \u2014 expires ' : 'Expires ') + fmtDate(data.warranty_expiry);
+      document.getElementById('rw-warranty-text').textContent = wText;
+      document.getElementById('rw-warranty').style.display = 'block';
+    }
+
+    // Notes
+    if (data.notes) {
+      document.getElementById('rw-notes-text').textContent = data.notes;
+      document.getElementById('rw-notes').style.display = 'block';
+    }
+
+    resultPanel.style.display = 'block';
+
+    // Show gate
+    setTimeout(function() {
+      var gate = document.getElementById('rw-gate');
+      gate.style.display = 'flex';
+      var heading = document.getElementById('rw-gate-heading');
+      var body = document.getElementById('rw-gate-body');
+      var h = 'Save this receipt to your vault.';
+      var b = 'Create a free account to store every receipt you scan — searchable, encrypted, always available at claim time.';
+      var i = 0, j = 0;
+      heading.textContent = '';
+      body.textContent = '';
+      function typeH() {
+        i++; heading.textContent = h.slice(0, i);
+        if (i < h.length) { setTimeout(typeH, 45 + Math.random() * 25); }
+        else { setTimeout(typeB, 300); }
+      }
+      function typeB() {
+        j++; body.textContent = b.slice(0, j);
+        if (j < b.length) { setTimeout(typeB, 18 + Math.random() * 12); }
+      }
+      typeH();
+    }, 400);
+  }
+
+  zone.addEventListener('click', function() { fileInput.click(); });
+  zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.style.borderColor = 'var(--color-sage)'; });
+  zone.addEventListener('dragleave', function() { zone.style.borderColor = ''; });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault(); zone.style.borderColor = '';
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+  fileInput.addEventListener('change', function() {
+    var file = fileInput.files && fileInput.files[0];
+    if (file) handleFile(file);
+  });
+
+  async function handleFile(file) {
+    collapseHero();
+    placeholder.style.display = 'none';
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+    zone.style.animation = 'none';
+    setScanActive(true);
+    setStatus('Stripping metadata...');
+
+    try {
+      var stripped = await stripExif(file);
+      setStatus('Uploading...');
+      var fd = new FormData();
+      fd.append('file', stripped);
+      var upRes = await fetch('/api/scan/upload', { method: 'POST', body: fd });
+      var upData = await upRes.json();
+      if (upData.error) throw new Error(upData.error);
+
+      setStatus('Reading receipt...');
+      var identRes = await fetch('/api/scan/identify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: upData.key, mode: 'guest' })
+      });
+      var identData = await identRes.json();
+
+      if (identData.guest_limit || identData.credits_exhausted) {
+        setScanActive(false);
+        setStatus('');
+        placeholder.style.display = 'none';
+        resultPanel.style.display = 'block';
+        document.getElementById('rw-result-card').style.display = 'none';
+        document.getElementById('rw-gate').style.display = 'flex';
+        return;
+      }
+      if (identData.error) throw new Error(identData.error);
+
+      setScanActive(false);
+      setStatus('');
+
+      if (identData.id) {
+        try { localStorage.setItem('gr_pending_scan', identData.id); } catch(e) {}
+      }
+
+      showResult(identData);
+
+    } catch(err) {
+      setScanActive(false);
+      setStatus('Something went wrong. Please try again.');
+      console.error(err);
+    }
+  }
+
+  function stripExif(file) {
+    return new Promise(function(resolve, reject) {
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function() {
+        try {
+          var canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+          var ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('Canvas unavailable');
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob(function(blob) {
+            URL.revokeObjectURL(url);
+            if (!blob) { reject(new Error('toBlob failed')); return; }
+            resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+          }, 'image/jpeg', 0.92);
+        } catch(e) { URL.revokeObjectURL(url); reject(e); }
+      };
+      img.onerror = function() { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+      img.src = url;
+    });
+  }
+
+  var authBtn = document.getElementById('rw-auth-btn');
+  if (authBtn) {
+    authBtn.addEventListener('click', function() {
+      var pending = '';
+      try { pending = localStorage.getItem('gr_pending_scan') || ''; } catch(e) {}
+      var url = 'https://gaukauth.com?from=gaukreceipts.com&next=/receipts';
+      if (pending) url += '&pending_scan=' + encodeURIComponent(pending);
+      window.location.href = url;
+    });
+  }
+})();
+</script>
