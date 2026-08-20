@@ -49,7 +49,7 @@
       </div>
 
       <!-- Line items -->
-      <div id="rw-items-header" style="display: none; font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-sage); padding: 14px 0 8px;"></div>
+      <div id="rw-items-header" style="display: none; font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.18em; color: var(--color-sage); padding: 14px 0 8px;"></div>
       <div id="rw-items-list" style="display: flex; flex-direction: column; padding: 0 0 16px; border-bottom: 1px solid rgba(255,255,255,0.08); gap: 0;"></div>
 
       <!-- Totals summary -->
@@ -90,7 +90,7 @@
 
 </div>
 
-<style>
+<style is:global>
   @keyframes scanLine {
     0% { top: 0%; }
     100% { top: 100%; }
@@ -218,7 +218,7 @@
     if (data.tax_amount) {
       var taxRow = document.createElement('div');
       taxRow.className = 'rw-total-row';
-      taxRow.innerHTML = '<span>' + (data.tax_label || 'Tax') + ' included</span><span>' + fmt(data.tax_amount, data.currency) + '</span>';
+      taxRow.innerHTML = '<span>' + (data.tax_label || 'Tax') + ' included</span><span style="margin-left:auto;">' + fmt(data.tax_amount, data.currency) + '</span>';
       totalsEl.appendChild(taxRow);
     }
     if (data.savings_total) {
