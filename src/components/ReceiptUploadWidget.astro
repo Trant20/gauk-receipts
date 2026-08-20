@@ -342,7 +342,25 @@
         placeholder.style.display = 'none';
         resultPanel.style.display = 'block';
         document.getElementById('rw-result-card').style.display = 'none';
-        document.getElementById('rw-gate').style.display = 'flex';
+        var gate = document.getElementById('rw-gate');
+        gate.style.display = 'flex';
+        var heading = document.getElementById('rw-gate-heading');
+        var body = document.getElementById('rw-gate-body');
+        var h = 'Ready to save every receipt automatically?';
+        var b = 'Create a free account to store every receipt you scan. Searchable, encrypted, always available at claim time.';
+        var i = 0, j = 0;
+        heading.textContent = '';
+        body.textContent = '';
+        function typeHG() {
+          i++; heading.textContent = h.slice(0, i);
+          if (i < h.length) { setTimeout(typeHG, 45 + Math.random() * 25); }
+          else { setTimeout(typeBG, 300); }
+        }
+        function typeBG() {
+          j++; body.textContent = b.slice(0, j);
+          if (j < b.length) { setTimeout(typeBG, 18 + Math.random() * 12); }
+        }
+        typeHG();
         return;
       }
       if (identData.error) throw new Error(identData.error);
