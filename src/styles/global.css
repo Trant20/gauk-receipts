@@ -20,6 +20,9 @@
   --font-sans:          'Inter', sans-serif;
 
   --radius:             6px;
+  --gr-sale:            #c97b2b;
+  --gr-sale-a15:        rgba(201,123,43,0.15);
+  --gr-sale-a30:        rgba(201,123,43,0.30);
 }
 
 /* ── Reset ─────────────────────────────────────────────────── */

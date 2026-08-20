@@ -127,6 +127,7 @@ export const POST: APIRoute = async ({ request }) => {
     const contentType = allowed.has(rawType) ? rawType : 'image/jpeg';
 
     // Fetch prompt config from ai_prompts
+    console.log("SITE_ID:", siteId);
     const promptConfig = await getPromptConfig(supabase, siteId, 'general', 'system_prompt, model, max_tokens');
     if (!promptConfig) return json({ error: 'Prompt configuration not found.' }, 500);
 
@@ -143,6 +144,7 @@ export const POST: APIRoute = async ({ request }) => {
       .replaceAll('ANTIQUE_CATEGORIES', antiqueCategories);
 
     // Call Claude
+    console.log("API KEY PREFIX:", cfEnv.ANTHROPIC_API_KEY?.slice(0, 8));
     const client = new Anthropic({ apiKey: cfEnv.ANTHROPIC_API_KEY });
     const response = await client.messages.create({
       model: promptConfig.model as string,

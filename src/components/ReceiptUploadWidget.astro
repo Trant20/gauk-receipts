@@ -42,26 +42,15 @@
     <div id="rw-result-card" style="background: var(--color-card); border: 1px solid var(--color-border-card); border-radius: var(--radius); padding: clamp(24px,4vh,40px) clamp(20px,4vw,36px); display: flex; flex-direction: column; gap: 0;">
 
       <!-- Merchant block -->
-      <div style="padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <div style="padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08);">
         <span id="rw-category" style="font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-sage); display: block; margin-bottom: 6px;"></span>
-        <h3 id="rw-merchant" style="font-family: var(--font-serif); font-weight: 400; font-size: clamp(22px,3vw,32px); color: var(--color-text); line-height: 1.2; margin-bottom: 4px;"></h3>
-        <div id="rw-merchant-meta" style="font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.5); display: flex; gap: 12px; flex-wrap: wrap;"></div>
-      </div>
-
-      <!-- Total + Confidence -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <span style="font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4);">Total Paid</span>
-          <span id="rw-total" style="font-family: var(--font-serif); font-size: clamp(22px,3vw,32px); color: var(--color-sage);"></span>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-          <span style="font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4);">Extraction</span>
-          <span id="rw-confidence" style="font-family: var(--font-serif); font-size: clamp(22px,3vw,32px); color: var(--color-text);"></span>
-        </div>
+        <div id="rw-merchant" style="font-family: var(--font-sans); font-size: 20px; font-weight: 700; color: var(--color-text); margin-bottom: 4px;"></div>
+        <div id="rw-merchant-meta" style="font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.45); display: flex; gap: 8px; flex-wrap: wrap;"></div>
       </div>
 
       <!-- Line items -->
-      <div id="rw-items-list" style="display: flex; flex-direction: column; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.1); gap: 0;"></div>
+      <div id="rw-items-header" style="display: none; font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-sage); padding: 14px 0 8px;"></div>
+      <div id="rw-items-list" style="display: flex; flex-direction: column; padding: 0 0 16px; border-bottom: 1px solid rgba(255,255,255,0.08); gap: 0;"></div>
 
       <!-- Totals summary -->
       <div id="rw-totals" style="padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 6px;"></div>
@@ -70,6 +59,16 @@
       <div id="rw-warranty" style="display: none; padding: 14px 16px; margin: 12px 0; background: rgba(122,110,158,0.08); border: 1px solid rgba(122,110,158,0.2); border-radius: var(--radius);">
         <span style="font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-sage); display: block; margin-bottom: 4px;">Warranty</span>
         <span id="rw-warranty-text" style="font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.6);"></span>
+      </div>
+
+      <!-- Confidence gauge -->
+      <div id="rw-confidence-wrap" style="display: none; align-items: center; gap: 14px; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.08);">
+        <svg id="rw-conf-svg" width="44" height="44" viewBox="0 0 44 44" style="flex-shrink:0;">
+          <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4"/>
+          <circle id="rw-conf-arc" cx="22" cy="22" r="18" fill="none" stroke="var(--color-sage)" stroke-width="4" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1" transform="rotate(-90 22 22)"/>
+          <text id="rw-conf-pct" x="22" y="27" text-anchor="middle" font-family="var(--font-sans)" font-size="10" font-weight="700" fill="var(--color-text)"></text>
+        </svg>
+        <span id="rw-conf-note" style="font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; font-style: italic;"></span>
       </div>
 
       <!-- Notes -->
@@ -83,7 +82,7 @@
     <div id="rw-gate" style="margin-top: 16px; background: var(--color-card); border: 1px solid var(--color-border-card); border-radius: var(--radius); padding: clamp(24px,4vh,40px) clamp(20px,4vw,36px); display: none; flex-direction: column; gap: 20px; text-align: center;">
       <h3 id="rw-gate-heading" style="font-family: var(--font-serif); font-weight: 400; font-size: clamp(22px,3vw,30px); color: var(--color-text); line-height: 1.2;"></h3>
       <p id="rw-gate-body" style="font-family: var(--font-sans); font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.8; max-width: 420px; margin: 0 auto;"></p>
-      <button id="rw-auth-btn" style="display: inline-block; background: var(--color-sage); color: white; font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 32px; border-radius: var(--radius); border: none; cursor: pointer; transition: opacity 0.2s;">Save to your vault — free</button>
+      <button id="rw-auth-btn" style="display: inline-block; background: var(--color-sage); color: white; font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 32px; border-radius: var(--radius); border: none; cursor: pointer; transition: opacity 0.2s;">Save to your vault free</button>
       <p style="font-family: var(--font-sans); font-size: 12px; color: rgba(255,255,255,0.3);">Takes 30 seconds. No card required.</p>
     </div>
 
@@ -107,13 +106,14 @@
   .rw-item-row:last-child { border-bottom: none; }
   .rw-item-desc { font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.65); flex: 1; }
   .rw-item-meta { font-family: var(--font-sans); font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 2px; display: flex; gap: 8px; }
-  .rw-sale-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #c97b2b; background: rgba(201,123,43,0.15); border: 1px solid rgba(201,123,43,0.3); padding: 1px 5px; }
+  .rw-sale-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gr-sale); background: var(--gr-sale-a15); border: 1px solid var(--gr-sale-a30); padding: 1px 5px; }
   .rw-item-price { text-align: right; flex-shrink: 0; }
   .rw-item-amount { font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); }
   .rw-item-orig { font-family: var(--font-sans); font-size: 11px; color: rgba(255,255,255,0.3); text-decoration: line-through; margin-top: 1px; }
-  .rw-total-row { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.5); }
-  .rw-savings-row { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 13px; color: #5a9e68; font-weight: 600; }
-  .rw-total-final { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 15px; font-weight: 700; color: var(--color-text); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 4px; }
+  .rw-total-row { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 13px; color: rgba(255,255,255,0.45); padding: 4px 0; }
+  .rw-savings-row { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 13px; color: #5a9e68; font-weight: 600; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 2px; }
+  .rw-total-final { display: flex; justify-content: space-between; font-family: var(--font-sans); font-size: 15px; font-weight: 700; color: var(--color-text); border-top: 1px solid rgba(255,255,255,0.12); padding-top: 10px; margin-top: 4px; }
+  .rw-payment { font-family: var(--font-sans); font-size: 11px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 6px; }
 </style>
 
 <script is:inline>
@@ -162,22 +162,27 @@
     // Merchant
     document.getElementById('rw-category').textContent = data.category || '';
     document.getElementById('rw-merchant').textContent = data.merchant || 'Receipt scanned';
-    document.getElementById('rw-total').textContent = data.total_display || '';
-    document.getElementById('rw-confidence').textContent = data.confidence || '';
 
     // Merchant meta row
     var metaEl = document.getElementById('rw-merchant-meta');
     var metaParts = [];
     if (data.merchant_branch) metaParts.push(data.merchant_branch);
-    if (data.merchant_gst) metaParts.push('GST ' + data.merchant_gst);
+    if (data.merchant_gst) metaParts.push('GST No. ' + data.merchant_gst);
     if (data.date) metaParts.push(fmtDate(data.date));
     if (data.time) metaParts.push(data.time);
-    metaEl.innerHTML = metaParts.map(function(p) { return '<span>' + p + '</span>'; }).join('');
+    metaEl.innerHTML = metaParts.map(function(p) { return '<span>' + p + '</span>'; }).join('  ');
+
+    // Items header
+    var itemsHeader = document.getElementById('rw-items-header');
+    var items = data.items || [];
+    if (items.length) {
+      itemsHeader.textContent = 'ITEMS (' + items.length + ')';
+      itemsHeader.style.display = 'block';
+    }
 
     // Line items
     var itemsList = document.getElementById('rw-items-list');
     itemsList.innerHTML = '';
-    var items = data.items || [];
     items.forEach(function(item) {
       var row = document.createElement('div');
       row.className = 'rw-item-row';
@@ -225,12 +230,37 @@
     finalRow.innerHTML = '<span>Total paid</span><span>' + (data.total_display || '') + '</span>';
     totalsEl.appendChild(finalRow);
 
+    if (data.payment_method && data.payment_method !== 'unknown') {
+      var pmDiv = document.createElement('div');
+      pmDiv.className = 'rw-payment';
+      pmDiv.textContent = data.payment_method;
+      totalsEl.appendChild(pmDiv);
+    }
+
     // Warranty
     if (data.warranty_expiry || data.warranty_years) {
       var wText = data.warranty_years ? data.warranty_years + ' year warranty' : '';
       if (data.warranty_expiry) wText += (wText ? ' \u2014 expires ' : 'Expires ') + fmtDate(data.warranty_expiry);
       document.getElementById('rw-warranty-text').textContent = wText;
       document.getElementById('rw-warranty').style.display = 'block';
+    }
+
+    // Confidence gauge
+    var confMap = { 'High': 94, 'Medium': 65, 'Low': 32 };
+    var confScore = confMap[data.confidence] || 70;
+    var confNotes = {
+      'High': 'Strong match. The AI is highly confident in this receipt extraction.',
+      'Medium': 'Good match. Most fields extracted. Verify any unclear amounts.',
+      'Low': 'Low confidence. The receipt may be unclear. Verify the details manually.'
+    };
+    var confWrap = document.getElementById('rw-confidence-wrap');
+    if (confWrap) {
+      confWrap.style.display = 'flex';
+      var arc = document.getElementById('rw-conf-arc');
+      var circumference = 113.1;
+      arc.setAttribute('stroke-dashoffset', (circumference * (1 - confScore / 100)).toFixed(1));
+      document.getElementById('rw-conf-pct').textContent = confScore + '%';
+      document.getElementById('rw-conf-note').textContent = confNotes[data.confidence] || confNotes['High'];
     }
 
     // Notes
@@ -248,7 +278,7 @@
       var heading = document.getElementById('rw-gate-heading');
       var body = document.getElementById('rw-gate-body');
       var h = 'Save this receipt to your vault.';
-      var b = 'Create a free account to store every receipt you scan — searchable, encrypted, always available at claim time.';
+      var b = 'Create a free account to store every receipt you scan. Searchable, encrypted, always available at claim time.';
       var i = 0, j = 0;
       heading.textContent = '';
       body.textContent = '';
