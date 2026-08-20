@@ -160,7 +160,7 @@
 
   function showResult(data) {
     // Merchant
-    document.getElementById('rw-category').textContent = data.category || '';
+    document.getElementById('rw-category').textContent = '';
     document.getElementById('rw-merchant').textContent = data.merchant || 'Receipt scanned';
 
     // Merchant meta row
@@ -170,13 +170,15 @@
     if (data.merchant_gst) metaParts.push('GST No. ' + data.merchant_gst);
     if (data.date) metaParts.push(fmtDate(data.date));
     if (data.time) metaParts.push(data.time);
-    metaEl.innerHTML = metaParts.map(function(p) { return '<span>' + p + '</span>'; }).join('  ');
+    if (data.category) metaParts.push(data.category);
+    if (data.receipt_number) metaParts.push('Ref ' + data.receipt_number);
+    metaEl.innerHTML = metaParts.map(function(p) { return '<span>' + p + '</span>'; }).join('<span style="color:rgba(255,255,255,0.2);padding:0 6px;">—</span>');
 
     // Items header
     var itemsHeader = document.getElementById('rw-items-header');
     var items = data.items || [];
     if (items.length) {
-      itemsHeader.textContent = 'ITEMS (' + items.length + ')';
+      itemsHeader.textContent = 'Items (' + items.length + ')';
       itemsHeader.style.display = 'block';
     }
 
@@ -249,9 +251,9 @@
     var confMap = { 'High': 94, 'Medium': 65, 'Low': 32 };
     var confScore = confMap[data.confidence] || 70;
     var confNotes = {
-      'High': 'Strong match. The AI is highly confident in this receipt extraction.',
-      'Medium': 'Good match. Most fields extracted. Verify any unclear amounts.',
-      'Low': 'Low confidence. The receipt may be unclear. Verify the details manually.'
+      'High': 'Strong match — the AI is highly confident in this receipt extraction.',
+      'Medium': 'Good match — most data extracted accurately. Review line items for any errors.',
+      'Low': 'Low confidence — the receipt may be unclear. Verify the details manually.'
     };
     var confWrap = document.getElementById('rw-confidence-wrap');
     if (confWrap) {
