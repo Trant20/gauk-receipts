@@ -73,12 +73,14 @@ export const POST: APIRoute = async ({ request }) => {
     const { key, mode = 'guest' } = await request.json();
     if (!key) return json({ error: 'No image key provided.' }, 400);
 
-    const countryCode = (request as any).cf?.country || 'US';
-    const currency = getCurrency(countryCode);
-
     const supabase = getSupabase();
     const cfEnv = env as unknown as CloudflareEnv;
     const siteId = cfEnv.SITE_ID;
+
+    // Receipts does not use geolocation — currency is extracted from the receipt by AI
+    const isReceipts = siteId === '30f3c0d1-2694-4db5-82e9-b3805a903643';
+    const countryCode = !isReceipts ? ((request as any).cf?.country || 'US') : 'US';
+    const currency = !isReceipts ? getCurrency(countryCode) : { code: '', symbol: '', name: '' };
 
     const auth = request.headers.get('Authorization');
     let userId: string | null = null;
@@ -140,7 +142,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const systemPrompt = (promptConfig.system_prompt as string)
       .replaceAll('MODE_INSTRUCTION', modeInstruction)
-      .replaceAll('CURRENCY', currency.code)
+      .replaceAll('CURRENCY', isReceipts ? '' : currency.code)
       .replaceAll('ANTIQUE_CATEGORIES', antiqueCategories);
 
     // Call Claude
@@ -163,7 +165,7 @@ export const POST: APIRoute = async ({ request }) => {
           },
           {
             type: 'text',
-            text: `Identify this item and return the JSON. Currency: ${currency.code}. Return only the JSON object.`
+            text: isReceipts ? 'Extract all data from this receipt and return the JSON. Return only the JSON object.' : `Identify this item and return the JSON. Currency: ${currency.code}. Return only the JSON object.`
           }
         ]
       }]
@@ -182,8 +184,7 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: 'AI returned malformed response.' }, 500);
     }
 
-    // Detect receipts vs identifications
-    const isReceipts = siteId === '30f3c0d1-2694-4db5-82e9-b3805a903643'
+    // isReceipts declared above before prompt build
     const r = result as any
 
     let record: { id: string } | null = null
@@ -269,7 +270,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (isReceipts) {
       // Return receipt-shaped response
       const sym: Record<string,string> = { NZD: 'NZ$', AUD: 'A$', GBP: '£', USD: '$', EUR: '€' }
-      const currency_code = r.currency || 'NZD'
+      const currency_code = r.currency || 'USD'
       const symbol = sym[currency_code] || currency_code + ' '
       const totalDisplay = r.total ? symbol + Number(r.total).toFixed(2) : ''
       const savingsTotal = r.savings_total
