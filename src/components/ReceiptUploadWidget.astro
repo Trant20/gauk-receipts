@@ -409,7 +409,7 @@
     authBtn.addEventListener('click', function() {
       var pending = '';
       try { pending = localStorage.getItem('gr_pending_scan') || ''; } catch(e) {}
-      var url = 'https://gaukauth.com?from=gaukreceipts.com&next=/receipts';
+      var url = 'https://gaukauth.com?from=gaukreceipts.com&next=/';
       if (pending) url += '&pending_scan=' + encodeURIComponent(pending);
       window.location.href = url;
     });
