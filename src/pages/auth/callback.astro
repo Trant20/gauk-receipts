@@ -46,8 +46,12 @@
 
   async function handleCallback() {
     const params = new URLSearchParams(window.location.search)
-    const accessToken = params.get('access_token')
-    const refreshToken = params.get('refresh_token')
+    // tokens travel in the URL fragment (never sent to servers); query string accepted during rollout
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    const accessToken = hashParams.get('access_token') || params.get('access_token')
+    const refreshToken = hashParams.get('refresh_token') || params.get('refresh_token')
+    // remove the tokens from the address bar / history entry now they are read
+    window.history.replaceState(null, '', window.location.pathname)
 
     // Same-site relative paths only
     let next = params.get('next') || '/'
