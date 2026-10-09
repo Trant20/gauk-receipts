@@ -1,0 +1,78 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Signing you in — GAUK Receipts</title>
+  <meta name="robots" content="noindex" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; font-family: system-ui, sans-serif; }
+    .callback-wrap {
+      min-height: 100svh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 20px; text-align: center;
+    }
+    .callback-title { font-size: 22px; font-weight: 300; margin-bottom: 10px; }
+    .callback-sub { font-size: 13px; opacity: 0.6; line-height: 1.7; }
+    .callback-error { font-size: 13px; margin-top: 20px; display: none; }
+  </style>
+</head>
+<body>
+<div class="callback-wrap">
+  <div>
+    <div class="callback-title">Signing you in…</div>
+    <div class="callback-sub">Please wait a moment.</div>
+    <div class="callback-error" id="callback-error"></div>
+  </div>
+</div>
+
+<script>
+  import { supabase } from '../../lib/supabase'
+
+  const AUTH_URL = 'https://gaukauth.com?from=gaukreceipts.com&next=/'
+
+  function showError(message: string) {
+    const errorEl = document.getElementById('callback-error')
+    if (errorEl) {
+      errorEl.textContent = message
+      errorEl.style.display = 'block'
+    }
+    setTimeout(() => { window.location.href = AUTH_URL }, 3000)
+  }
+
+  async function handleCallback() {
+    const params = new URLSearchParams(window.location.search)
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+
+    // Same-site relative paths only
+    let next = params.get('next') || '/'
+    if (next.charAt(0) !== '/' || next.indexOf('//') === 0) next = '/'
+
+    if (!accessToken || !refreshToken) {
+      showError('Invalid sign-in link. Please sign in again.')
+      return
+    }
+
+    const result = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    })
+
+    if (result.error || !result.data.session) {
+      showError('Session handoff failed. Please sign in again.')
+      return
+    }
+
+    // replace so the tokens in the URL do not stay in browser history
+    window.location.replace(next)
+  }
+
+  handleCallback()
+</script>
+</body>
+</html>
