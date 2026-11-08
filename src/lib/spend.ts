@@ -37,7 +37,8 @@ export async function spendCredits(supabase: SupabaseClient, args: SpendArgs): P
     p_site_id: siteId,
     p_amount: amount,
     p_reason: reason,
-    p_note: args.note ?? null,
+    // TEMPORARY diagnostic: tags the ledger note with the request id so it can be compared with the request_id column
+    p_note: args.note ?? `diag:${requestId}`,
     p_request_id: requestId,
   })
   if (error) {
