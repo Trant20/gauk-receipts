@@ -4,6 +4,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
 import type { CloudflareEnv } from '../../../lib/constants';
 import { getPromptConfig } from '../../../lib/ai';
+import { spendCredits, refundSpend } from '../../../lib/spend';
 
 const GUEST_SCAN_LIMIT = 1;
 const GUEST_SCAN_TTL   = 60 * 60 * 24; // 24 hours
@@ -69,6 +70,8 @@ async function getAntiqueCategories(supabase: any): Promise<string> {
 
 
 export const POST: APIRoute = async ({ request }) => {
+  // The charge for this request, kept outside the try so every failure path can refund it
+  let chargeId: string | null = null;
   try {
     const { key, mode = 'guest' } = await request.json();
     if (!key) return json({ error: 'No image key provided.' }, 400);
@@ -90,17 +93,6 @@ export const POST: APIRoute = async ({ request }) => {
       const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       if (authError || !user) return json({ error: 'Invalid token.' }, 401);
       userId = user.id;
-
-      // Check credit balance before AI call — deduct after DB insert with real ID
-      const { data: creditRow } = await supabase
-        .from('credits')
-        .select('balance')
-        .eq('user_id', userId)
-        .single();
-
-      if (!creditRow || creditRow.balance < 1) {
-        return json({ error: 'Insufficient credits.', credits_exhausted: true }, 402);
-      }
 
     } else {
       // Guest — enforce limit via KV
@@ -145,6 +137,17 @@ export const POST: APIRoute = async ({ request }) => {
       .replaceAll('CURRENCY', isReceipts ? '' : currency.code)
       .replaceAll('ANTIQUE_CATEGORIES', antiqueCategories);
 
+    // Charge before the AI runs, so a held account is refused and the balance cannot be overspent.
+    // If no answer is delivered below, the charge is refunded.
+    if (userId) {
+      chargeId = crypto.randomUUID();
+      const blocked = await spendCredits(supabase, { userId, siteId, amount: 1, reason: 'identification_used', requestId: chargeId });
+      if (blocked) {
+        chargeId = null;
+        return blocked;
+      }
+    }
+
     // Call Claude
     console.log("API KEY PREFIX:", cfEnv.ANTHROPIC_API_KEY?.slice(0, 8));
     const client = new Anthropic({ apiKey: cfEnv.ANTHROPIC_API_KEY });
@@ -172,6 +175,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     if (!response.content[0] || response.content[0].type !== 'text') {
+      if (chargeId) await refundSpend(supabase, chargeId);
       return json({ error: 'No response from AI.' }, 500);
     }
 
@@ -181,6 +185,7 @@ export const POST: APIRoute = async ({ request }) => {
       const clean = raw.replaceAll('```json', '').replaceAll('```', '').trim();
       result = JSON.parse(clean);
     } catch {
+      if (chargeId) await refundSpend(supabase, chargeId);
       return json({ error: 'AI returned malformed response.' }, 500);
     }
 
@@ -243,16 +248,6 @@ export const POST: APIRoute = async ({ request }) => {
         .single()
       if (dbError) console.error('DB write error:', dbError.message)
       record = idRecord
-    }
-
-    // Deduct credit after DB insert with real ID
-    if (userId && record?.id) {
-      const { data: deducted } = await supabase.rpc('deduct_identification_credit', {
-        p_user_id: userId,
-        p_site_id: siteId,
-        p_identification_id: record.id
-      })
-      if (!deducted) console.error('Credit deduction failed:', record.id)
     }
 
     // Increment guest counter
@@ -334,6 +329,7 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('scan/identify error:', message);
+    if (chargeId) await refundSpend(getSupabase(), chargeId);
     return json({ error: message }, 500);
   }
 };
