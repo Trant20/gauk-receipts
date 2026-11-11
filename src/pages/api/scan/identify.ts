@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { CloudflareEnv } from '../../../lib/constants';
 import { getPromptConfig } from '../../../lib/ai';
 import { spendCredits, refundSpend } from '../../../lib/spend';
+import { getCreditCost } from '../../../lib/credit-costs';
 
 const GUEST_SCAN_LIMIT = 1;
 const GUEST_SCAN_TTL   = 60 * 60 * 24; // 24 hours
@@ -139,9 +140,11 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Charge before the AI runs, so a held account is refused and the balance cannot be overspent.
     // If no answer is delivered below, the charge is refunded.
-    if (userId) {
+    // The price is the product's credits in GMC. A guest scans free, so a guest is charged and recorded as 0.
+    const creditCost = userId ? await getCreditCost(supabase, siteId, 'credit_cost_identify') : 0;
+    if (userId && creditCost > 0) {
       chargeId = crypto.randomUUID();
-      const blocked = await spendCredits(supabase, { userId, siteId, amount: 1, reason: 'identification_used', requestId: chargeId });
+      const blocked = await spendCredits(supabase, { userId, siteId, amount: creditCost, reason: 'identification_used', requestId: chargeId });
       if (blocked) {
         chargeId = null;
         return blocked;
@@ -213,7 +216,7 @@ export const POST: APIRoute = async ({ request }) => {
           confidence:      r.confidence      || null,
           notes:           r.notes           || null,
           result_json:     result,
-          credits_used:    1
+          credits_used:    creditCost
         })
         .select()
         .single()
@@ -242,7 +245,7 @@ export const POST: APIRoute = async ({ request }) => {
           value_range_low: r.value_range_low,
           value_range_high: r.value_range_high,
           confidence: r.confidence,
-          credits_used: 1
+          credits_used: creditCost
         })
         .select()
         .single()
