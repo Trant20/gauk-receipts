@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
-import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
 import type { CloudflareEnv } from '../../../lib/constants';
 import { getPromptConfig } from '../../../lib/ai';
 import { spendCredits, refundSpend } from '../../../lib/spend';
 import { getCreditCost } from '../../../lib/credit-costs';
+import { callClaude, textOf } from '../../../lib/ai-call';
 
 const GUEST_SCAN_LIMIT = 1;
 const GUEST_SCAN_TTL   = 60 * 60 * 24; // 24 hours
@@ -123,7 +123,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Fetch prompt config from ai_prompts
     console.log("SITE_ID:", siteId);
-    const promptConfig = await getPromptConfig(supabase, siteId, 'general', 'system_prompt, model, max_tokens');
+    const promptConfig = await getPromptConfig(supabase, siteId, 'general', 'system_prompt, max_tokens');
     if (!promptConfig) return json({ error: 'Prompt configuration not found.' }, 500);
 
     // Build mode-specific prompt — apply runtime substitutions to stored template
@@ -153,9 +153,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Call Claude
     console.log("API KEY PREFIX:", cfEnv.ANTHROPIC_API_KEY?.slice(0, 8));
-    const client = new Anthropic({ apiKey: cfEnv.ANTHROPIC_API_KEY });
-    const response = await client.messages.create({
-      model: promptConfig.model as string,
+    const ai = await callClaude(supabase, {
+      job: 'scan_identify', apiKey: cfEnv.ANTHROPIC_API_KEY, siteId,
+      body: {
       max_tokens: promptConfig.max_tokens as number,
       system: systemPrompt,
       messages: [{
@@ -175,16 +175,19 @@ export const POST: APIRoute = async ({ request }) => {
           }
         ]
       }]
+      },
     });
+    if (!ai.ok) throw new Error(ai.error ?? 'AI request failed');
 
-    if (!response.content[0] || response.content[0].type !== 'text') {
+    const answerText = textOf(ai.data);
+    if (!answerText) {
       if (chargeId) await refundSpend(supabase, chargeId);
       return json({ error: 'No response from AI.' }, 500);
     }
 
     let result: Record<string, unknown>;
     try {
-      const raw = response.content[0].text;
+      const raw = answerText;
       const clean = raw.replaceAll('```json', '').replaceAll('```', '').trim();
       result = JSON.parse(clean);
     } catch {
